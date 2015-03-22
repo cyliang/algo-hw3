@@ -1,0 +1,16 @@
+# vim: set syntax=python filetype=python:
+
+import msgpack
+
+with open("input.txt", "rb") as input_file, open("output.txt", "wb") as output_file:
+	inPack = msgpack.Unpacker(input_file, use_list = True)
+
+	seq_count = inPack.unpack()
+	for i in range(seq_count):
+		seq = inPack.unpack()
+		
+		# To something to the seq here
+
+
+		# Write answer
+		msgpack.pack(ans, output_file)
