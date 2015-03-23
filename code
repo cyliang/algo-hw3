@@ -2,49 +2,69 @@
 
 import msgpack
 
-class MergeSort:
-	def __init__(self, unsorted):
-		self.numInversion = 0
-		self.seqLength = len(unsorted)
-		self.primarySeq = unsorted
-		self.auxiliarySeq = [None] * self.seqLength
+# Bottom-up merge sort
+# Return number of inversion
+def mergeSort(unsorted):
+	numInversion = 0
+	seqLength = len(unsorted)
+	primarySeq = unsorted
+	auxiliarySeq = [None] * seqLength
 
-		# Start sorting
-		subLength = 1
-		while subLength < self.seqLength:
-			for subOffset in range(0, self.seqLength, subLength * 2):
-				left = subOffset
-				right = subOffset + subLength
-				leftRemain = subLength
-				rightRemain = subLength
-				
-				if right + rightRemain > self.seqLength:
-					rightRemain = self.seqLength - right
+	# Start sorting
+	# Length of subsequence -> 1, 2, 4, 8, ...., 2 ** k
+	subLength = 1
+	while subLength < seqLength:
 
-					if left + leftRemain > self.seqLength:
-						leftRemain = self.seqLength - left
+		# Iterating each two subsequence
+		# Merge these two subsequence
+		for subOffset in range(0, seqLength, subLength * 2):
 
-				i = subOffset
-				while rightRemain > 0 and leftRemain > 0:
-					if self.primarySeq[right] < self.primarySeq[left]:
-						self.auxiliarySeq[i] = self.primarySeq[right]
-						right = right + 1
-						rightRemain = rightRemain - 1
-						self.numInversion = self.numInversion + leftRemain
-					else:
-						self.auxiliarySeq[i] = self.primarySeq[left]
-						left = left + 1
-						leftRemain = leftRemain - 1
-					i = i + 1
+			# Decide the start and end offset of these two subsequence
+			left = subOffset
+			right = subOffset + subLength
+			leftRemain = subLength
+			rightRemain = subLength
+			
+			if right + rightRemain > seqLength:
+				rightRemain = seqLength - right
 
-				if rightRemain <= 0:
-					self.auxiliarySeq[i:i + leftRemain] = self.primarySeq[left:left + leftRemain]
-				elif leftRemain == 0:
-					self.auxiliarySeq[i:subOffset + subLength * 2] = self.primarySeq[right:right + rightRemain]
+				if left + leftRemain > seqLength:
+					leftRemain = seqLength - left
 
+			# Select the little one from the first element of these two subsequence
+			# auxiliarySeq[i] = min(primarySeq[left], primarySeq[right])
+			i = subOffset
+			while rightRemain > 0 and leftRemain > 0:
 
-			self.primarySeq, self.auxiliarySeq = self.auxiliarySeq, self.primarySeq
-			subLength = subLength * 2
+				# the right one is less (has inversions)
+				if primarySeq[right] < primarySeq[left]:
+					auxiliarySeq[i] = primarySeq[right]
+					right = right + 1
+					rightRemain = rightRemain - 1
+
+					##########################################
+					numInversion = numInversion + leftRemain #
+					##########################################
+
+				# the left one is less (no inversion)
+				else:
+					auxiliarySeq[i] = primarySeq[left]
+					left = left + 1
+					leftRemain = leftRemain - 1
+
+				i = i + 1
+
+			if rightRemain <= 0:
+				auxiliarySeq[i: i+leftRemain] = primarySeq[left: left+leftRemain]
+			elif leftRemain == 0:
+				auxiliarySeq[i: subOffset+subLength*2] = primarySeq[right: right+rightRemain]
+
+		# Swap the result sequence and working sequence
+		primarySeq, auxiliarySeq = auxiliarySeq, primarySeq
+		subLength = subLength * 2
+	
+	# Return the number of inversions
+	return numInversion
 
 
 with open("input.txt", "rb") as input_file, open("output.txt", "wb") as output_file:
@@ -53,6 +73,4 @@ with open("input.txt", "rb") as input_file, open("output.txt", "wb") as output_f
 	seq_count = inPack.unpack()
 	for i in range(seq_count):
 		seq = inPack.unpack()
-		sortResult = MergeSort(seq)
-		# print sortResult.primarySeq, sortResult.numInversion
-		msgpack.pack(sortResult.numInversion, output_file)
+		msgpack.pack(mergeSort(seq), output_file)
